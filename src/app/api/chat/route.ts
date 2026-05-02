@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND_URL = "http://srv1626129.hstgr.cloud:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://srv1626129.hstgr.cloud:8000";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
+    console.error("Backend error:", error);
     if (error instanceof Error && error.name === "TimeoutError") {
       return NextResponse.json({ detail: "Request timeout" }, { status: 408 });
     }

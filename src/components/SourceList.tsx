@@ -23,6 +23,8 @@ export default function SourceList({ sources }: SourceListProps) {
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className={`w-3 h-3 transition-transform ${expanded ? "rotate-90" : ""}`}
+          width="12"
+          height="12"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -39,6 +41,8 @@ export default function SourceList({ sources }: SourceListProps) {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-3 h-3 mt-0.5 text-gray-400 flex-shrink-0"
+                width="12"
+                height="12"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
