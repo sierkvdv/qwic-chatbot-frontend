@@ -9,18 +9,18 @@ import DealerHeader from "@/components/DealerHeader";
 import DealerSetupModal from "@/components/DealerSetupModal";
 import EscalationModal from "@/components/EscalationModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-const WELCOME_MESSAGE: Message = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Hallo! Ik ben de QWIC technische ondersteuningsassistent. Ik kan je helpen met vragen over foutcodes, handleidingen, onderhoud en technische specificaties van QWIC elektrische fietsen.\n\nWat kan ik voor je doen?",
-  timestamp: new Date(),
-};
+const WELCOME_CONTENT =
+  "Hallo! Ik ben de QWIC technische ondersteuningsassistent. Ik kan je helpen met vragen over foutcodes, handleidingen, onderhoud en technische specificaties van QWIC elektrische fietsen.\n\nWat kan ik voor je doen?";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    {
+      id: "welcome",
+      role: "assistant",
+      content: WELCOME_CONTENT,
+      timestamp: new Date(),
+    },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [dealerName, setDealerName] = useState<string>("");
   const [showDealerModal, setShowDealerModal] = useState(true);
@@ -43,7 +43,7 @@ export default function ChatPage() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch("/api/health", { signal: AbortSignal.timeout(5000) });
         setIsOnline(res.ok);
       } catch {
         setIsOnline(false);
@@ -99,7 +99,7 @@ export default function ChatPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/chat`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +165,14 @@ export default function ChatPage() {
   };
 
   const handleClearChat = () => {
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: WELCOME_CONTENT,
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   return (
