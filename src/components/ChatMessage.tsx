@@ -8,6 +8,7 @@ import EscalationBanner from "./EscalationBanner";
 interface ChatMessageProps {
   message: Message;
   onEscalate?: () => void;
+  onQuickReply?: (reply: string) => void;
 }
 
 function TypingIndicator() {
@@ -21,21 +22,25 @@ function TypingIndicator() {
 }
 
 function formatContent(content: string): React.ReactNode {
-  // Simple markdown-like formatting
   const lines = content.split('\n');
-  return lines.map((line, i) => {
-    // Bold text: **text**
-    const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  return lines.map((line, lineIdx) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const formatted = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx}>{part.slice(2, -2)}</strong>;
+      }
+      return <span key={partIdx}>{part}</span>;
+    });
     return (
-      <span key={i}>
-        <span dangerouslySetInnerHTML={{ __html: formatted }} />
-        {i < lines.length - 1 && <br />}
+      <span key={lineIdx}>
+        {formatted}
+        {lineIdx < lines.length - 1 && <br />}
       </span>
     );
   });
 }
 
-export default function ChatMessage({ message, onEscalate }: ChatMessageProps) {
+export default function ChatMessage({ message, onEscalate, onQuickReply }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
 
@@ -86,6 +91,21 @@ export default function ChatMessage({ message, onEscalate }: ChatMessageProps) {
                   {/* Sources */}
                   {message.sources && message.sources.length > 0 && (
                     <SourceList sources={message.sources} />
+                  )}
+
+                  {/* Motor type quick-reply buttons */}
+                  {message.quickReplies && message.quickReplies.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {message.quickReplies.map((reply) => (
+                        <button
+                          key={reply}
+                          onClick={() => onQuickReply?.(reply)}
+                          className="px-3 py-1.5 text-xs font-medium bg-white border border-[#E63A2A] text-[#E63A2A] rounded-full hover:bg-[#E63A2A] hover:text-white transition-colors"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
                   )}
 
                   {/* Escalation banner */}

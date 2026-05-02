@@ -24,6 +24,7 @@ export interface Message {
   escalate?: boolean;
   timestamp: Date;
   isLoading?: boolean;
+  quickReplies?: string[];
 }
 
 export type IntentType = "faq" | "error_code" | "manual" | "escalate" | "error" | string;

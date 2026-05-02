@@ -12,6 +12,10 @@ import EscalationModal from "@/components/EscalationModal";
 const WELCOME_CONTENT =
   "Hallo! Ik ben de QWIC technische ondersteuningsassistent. Ik kan je helpen met vragen over foutcodes, handleidingen, onderhoud en technische specificaties van QWIC elektrische fietsen.\n\nWat kan ik voor je doen?";
 
+const MOTOR_TYPES = ["Brose", "Bafang", "Hyena", "H501", "Signal"];
+const ERROR_CODE_REGEX = /\b(foutcode|fout\s*code|error)\s*\d+\b/i;
+const MOTOR_REGEX = /\b(brose|bafang|hyena|h501|signal)\b/i;
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>(() => [
     {
@@ -27,10 +31,10 @@ export default function ChatPage() {
   const [showEscalationModal, setShowEscalationModal] = useState(false);
   const [sessionId] = useState(() => uuidv4());
   const [isOnline, setIsOnline] = useState(true);
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadingIdRef = useRef<string | null>(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -73,18 +77,7 @@ export default function ChatPage() {
     setShowDealerModal(false);
   };
 
-  const handleSendMessage = async (userMessage: string) => {
-    if (isLoading) return;
-
-    // Add user message
-    const userMsg: Message = {
-      id: uuidv4(),
-      role: "user",
-      content: userMessage,
-      timestamp: new Date(),
-    };
-
-    // Add loading message
+  const sendToBackend = useCallback(async (backendMessage: string) => {
     const loadingId = uuidv4();
     loadingIdRef.current = loadingId;
     const loadingMsg: Message = {
@@ -95,7 +88,7 @@ export default function ChatPage() {
       isLoading: true,
     };
 
-    setMessages((prev) => [...prev, userMsg, loadingMsg]);
+    setMessages((prev) => [...prev, loadingMsg]);
     setIsLoading(true);
 
     try {
@@ -103,7 +96,7 @@ export default function ChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMessage,
+          message: backendMessage,
           session_id: sessionId,
           dealer_name: dealerName || undefined,
         }),
@@ -117,7 +110,6 @@ export default function ChatPage() {
 
       const data: ChatResponse = await response.json();
 
-      // Replace loading message with actual response
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === loadingId
@@ -158,13 +150,68 @@ export default function ChatPage() {
       setIsLoading(false);
       loadingIdRef.current = null;
     }
-  };
+  }, [sessionId, dealerName]);
+
+  const handleSendMessage = useCallback(async (userMessage: string) => {
+    if (isLoading) return;
+
+    const userMsg: Message = {
+      id: uuidv4(),
+      role: "user",
+      content: userMessage,
+      timestamp: new Date(),
+    };
+
+    // Detect error code query without motor type → ask for clarification
+    if (ERROR_CODE_REGEX.test(userMessage) && !MOTOR_REGEX.test(userMessage)) {
+      const clarifyMsg: Message = {
+        id: uuidv4(),
+        role: "assistant",
+        content: "Welk systeem heeft de fiets? Zo kan ik de juiste foutcode opzoeken.",
+        timestamp: new Date(),
+        quickReplies: MOTOR_TYPES,
+      };
+      setMessages((prev) => [...prev, userMsg, clarifyMsg]);
+      setPendingUserMessage(userMessage);
+      return;
+    }
+
+    setMessages((prev) => [...prev, userMsg]);
+    await sendToBackend(userMessage);
+  }, [isLoading, sendToBackend]);
+
+  const handleQuickReply = useCallback((reply: string) => {
+    const combinedMessage = pendingUserMessage
+      ? `${pendingUserMessage} (systeem: ${reply})`
+      : reply;
+
+    setPendingUserMessage(null);
+
+    // Remove quick-reply buttons from the clarify message
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.quickReplies ? { ...msg, quickReplies: undefined } : msg
+      )
+    );
+
+    // Show user's selection as a chat message
+    const userMsg: Message = {
+      id: uuidv4(),
+      role: "user",
+      content: reply,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+
+    sendToBackend(combinedMessage);
+  }, [pendingUserMessage, sendToBackend]);
 
   const handleEscalate = () => {
     setShowEscalationModal(true);
   };
 
   const handleClearChat = () => {
+    setPendingUserMessage(null);
     setMessages([
       {
         id: "welcome",
@@ -193,6 +240,7 @@ export default function ChatPage() {
               key={message.id}
               message={message}
               onEscalate={handleEscalate}
+              onQuickReply={handleQuickReply}
             />
           ))}
           <div ref={messagesEndRef} />
