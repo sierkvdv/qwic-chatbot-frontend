@@ -11,6 +11,8 @@ export default function EscalationBanner({ onEscalate }: EscalationBannerProps) 
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"
+          width="16"
+          height="16"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -36,6 +38,8 @@ export default function EscalationBanner({ onEscalate }: EscalationBannerProps) 
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-4 h-4"
+          width="16"
+          height="16"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

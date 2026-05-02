@@ -65,7 +65,7 @@ export default function ChatMessage({ message, onEscalate, onQuickReply }: ChatM
         <div className="flex items-start gap-2 max-w-[85%] sm:max-w-[75%]">
           {/* QWIC Avatar */}
           <div className="flex-shrink-0 w-8 h-8 bg-[#E63A2A] rounded-full flex items-center justify-center shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
