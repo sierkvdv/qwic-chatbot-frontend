@@ -9,7 +9,7 @@ import DealerHeader from "@/components/DealerHeader";
 import DealerSetupModal from "@/components/DealerSetupModal";
 import EscalationModal from "@/components/EscalationModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = "/api";
 
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
