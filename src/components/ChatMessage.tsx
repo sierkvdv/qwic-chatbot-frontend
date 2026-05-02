@@ -21,19 +21,31 @@ function TypingIndicator() {
   );
 }
 
+function formatPart(part: string, key: number): React.ReactNode {
+  // Bold: **text**
+  if (part.startsWith('**') && part.endsWith('**')) {
+    return <strong key={key}>{part.slice(2, -2)}</strong>;
+  }
+  // Markdown link: [text](url)
+  const linkMatch = part.match(/^\[(.+?)\]\((.+?)\)$/);
+  if (linkMatch) {
+    return (
+      <a key={key} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+        className="text-blue-600 hover:underline break-all">
+        {linkMatch[1]}
+      </a>
+    );
+  }
+  return <span key={key}>{part}</span>;
+}
+
 function formatContent(content: string): React.ReactNode {
   const lines = content.split('\n');
   return lines.map((line, lineIdx) => {
-    const parts = line.split(/(\*\*[^*]+\*\*)/g);
-    const formatted = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={partIdx}>{part.slice(2, -2)}</strong>;
-      }
-      return <span key={partIdx}>{part}</span>;
-    });
+    const parts = line.split(/(\*\*[^*]+\*\*|\[.+?\]\(.+?\))/g);
     return (
       <span key={lineIdx}>
-        {formatted}
+        {parts.map((part, partIdx) => formatPart(part, partIdx))}
         {lineIdx < lines.length - 1 && <br />}
       </span>
     );
